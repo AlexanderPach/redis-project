@@ -8,14 +8,36 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 
+static void msg(const char *msg) {
+    fprintf(stderr, "%s\n", msg);
+}
+
 static void die(const char *msg) {
     int err = errno;
     fprintf(stderr, "[%d] %s\n", err, msg);
     abort();
 }
 
+// dummy function to simulate some processing on the connection (1 read, 1 write)
+static void do_something(int connfd) {
+    char rbuf[64] = {};
+    ssize_t n = read(connfd, rbuf, sizeof(rbuf) - 1);
+    if (n < 0) {
+        msg("read() error");
+        return;
+    }
+    fprintf(stderr, "client says: %s\n", rbuf);
+
+    char wbuf[] = "world";
+    write(connfd, wbuf, strlen(wbuf));
+}
+
 int main(){
     int fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (fd < 0) {
+        die("socket()");
+    }
 
     int val = 1; 
     setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
@@ -27,5 +49,25 @@ int main(){
     int rv = bind(fd, (const struct sockaddr *)&addr, sizeof(addr));
     if (rv) { die("bind()"); }
     
+    // listening
+    // SOMAXCONN is the size of the queue for pending connections (4096)
+    rv = listen(fd, SOMAXCONN);
+    if (rv) { die("listen()"); }
+
+
+    // creating a listening socket
+    while(true) {
+        // accept connections
+        struct sockaddr_in client_addr = {};
+        socklen_t addrlen = sizeof(client_addr);
+        int connfd = accept(fd, (struct sockaddr *)&client_addr, &addrlen);
+        if (connfd < 0) {
+            continue;   // error
+        }
+
+        do_something(connfd);
+        close(connfd);
+    }
+
     return 0;
 }
