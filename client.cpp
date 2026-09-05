@@ -93,8 +93,7 @@ int main() {
     if (fd < 0) {
         die("socket()");
     }
-    
-    // IPV4 address structure
+
     struct sockaddr_in addr = {};
     addr.sin_family = AF_INET;
     addr.sin_port = ntohs(1234);
@@ -104,15 +103,21 @@ int main() {
         die("connect");
     }
 
-    char msg[] = "hello";
-    write(fd, msg, strlen(msg));
-
-    char rbuf[64] = {};
-    ssize_t n = read(fd, rbuf, sizeof(rbuf) - 1);
-    if (n < 0) {
-        die("read");
+    // multiple requests
+    int32_t err = query(fd, "hello1");
+    if (err) {
+        goto L_DONE;
     }
-    printf("server says: %s\n", rbuf);
+    err = query(fd, "hello2");
+    if (err) {
+        goto L_DONE;
+    }
+    err = query(fd, "hello3");
+    if (err) {
+        goto L_DONE;
+    }
+
+L_DONE:
     close(fd);
     return 0;
 }
