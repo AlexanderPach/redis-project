@@ -7,6 +7,11 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
+#include <assert.h>
+
+static void msg(const char *msg) {
+    fprintf(stderr, "%s\n", msg);
+}
 
 // error handling
 static void die(const char *msg) {
