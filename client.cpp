@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 
-
+// error handling
 static void die(const char *msg) {
     int err = errno;
     fprintf(stderr, "[%d] %s\n", err, msg);
@@ -20,7 +20,8 @@ int main() {
     if (fd < 0) {
         die("socket()");
     }
-
+    
+    // IPV4 address structure
     struct sockaddr_in addr = {};
     addr.sin_family = AF_INET;
     addr.sin_port = ntohs(1234);
