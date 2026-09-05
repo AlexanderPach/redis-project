@@ -60,7 +60,7 @@ static int32_t one_request(int connfd) {
         msg(errno == 0 ? "EOF" : "read() error");
         return err;
     }
-    uint32_t len = 0;
+    uint32_t len = 0; // contains 4-byte header
     memcpy(&len, rbuf, 4);  // assume little endian
     if (len > k_max_msg) {
         msg("too long");
